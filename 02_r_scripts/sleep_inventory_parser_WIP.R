@@ -103,22 +103,34 @@ merge_json2 <- function() {
   return(output_tibble)
 }
 
-sleep_data_json <- merge_json2()
+sleep_json <- merge_json2()
 
 
 # Sleep json unnesting function -------------------------------------------
 
-unnest_sleep_json <- function(data_json) {
-  output_df <- data_json |> 
+unnest_sleep_json <- function(sleep_data_json) {
+  output_df_1 <- sleep_data_json |> 
     unnest_wider(json) |>
     unnest_wider(levels) |> 
     unnest_longer(summary) |>
-    unnest_wider(summary, names_sep = "_")
-
+    unnest_wider(summary, names_sep = "_") |> 
+    select(-data, -shortData)
+  
+  output_df_2 <- sleep_data_json |> 
+    unnest_wider(json) |> 
+    unnest_wider(levels) |> 
+    select(logId:dateOfSleep, data:shortData) |> 
+    rowwise() |> 
+    mutate(all_levels_data = list(bind_rows(data, shortData))) |> 
+    ungroup() |> 
+    select(-data, -shortData) |> 
+    unnest_longer(all_levels_data)
+  
+  output_df <- list(sleep_summary = output_df_1, sleep_details = output_df_2)
   return(output_df)
 }
 
-test_json <- unnest_sleep_json(sleep_data_json)
+sleep_json <- unnest_sleep_json(sleep_json)
   
 ### test & test2 works only with the first iteration of merge_json, which uses for loop
 # test <- sleep_data_json |> 
@@ -180,15 +192,13 @@ sleep_categories <- sleep_inventory_overview |>
          !str_detect(category, "Histogram")) |> 
   pull(category)
 
-sleep_data_csv <- map(sleep_categories, merge_csv)
+sleep_csv <- map(sleep_categories, merge_csv)
 
 # Changing names to make them more readable and code-friendly
 sleep_categories_name <- sleep_categories |> 
   str_replace_all("\\s", "_") |> 
   str_to_lower()
 
-sleep_data_csv <- set_names(sleep_data_csv, sleep_categories_name)
+sleep_csv <- set_names(sleep_csv, sleep_categories_name)
 
-
-
-
+sleep_data <- c(sleep_data_csv, test_json)
