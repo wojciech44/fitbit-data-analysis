@@ -1,0 +1,70 @@
+---
+title: "README"
+output: html_document
+date: "2025-07-27"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R you fit enough? Fitbit Data analysis with R.
+
+------------------------------------------------------------------------
+
+Purpose of this project is to wrangle and analyse years of data collected by the Fitbit wearables (Versa 2 & Versa 4). It is split into sections in which we import the data, unpack and manipulate it into a rectangular shape before we proceed with the analysis. Output will be a clean dataset and visualizations which can help jumpstart your own analysis.
+
+Precise goals of the analysis are yet to be determined. Though main idea is to answer few questions which come to mind: How does sleep affect my training performance over time? Has my “fitness” improved, based on personal metrics like weight and perceived exhaustion? Which Fitbit features actually matter for long-term tracking and improvement?
+
+This is a beginner-friendly, functional project written entirely in R and main objective - besides finding the answers to the above questions - is to learn the new technology based on a real life implementation.
+
+### Key considerations and prerequisites:
+
+-   R packages used in this project:
+-   Data cleanup
+    -   fs - folder structure
+    -   Tidyr
+    -   
+    -   Dplyr
+    -   Ggplot2
+-   Data was produced by Fitbit devices: Versa 2 & Versa 4 - not sure if this is compatible with other devices (i.e. data collected by other devices might come in a different structure); see data structure for more details
+-   Written for data spanning across multiple years (2020-2025 in this case)
+-   Any sharable output will be anonymised, given it is a sensitive and personal data
+-   Exported from Fitbit account (not Google account) <https://accounts.fitbit.com/login>
+-   See Google support article on how to export your own data: <https://support.google.com/fitbit/answer/14236615?hl=en#zippy=%2Chow-do-i-export-my-fitbit-data>
+-   This is primarily a learning project. The author is not a programmer and only has basic Python experience. There can be tools better suited for this projects - any constructive feedback is welcome.
+
+#### Data Structure:
+
+-   Main challenge in phase 1 - import & data wrangling
+-   Consists of folders - JSON - CSV - txt
+-   Some metrics (for example Stress Score) have their README.txt files explaining variables. This is available in the metrics explanation section/file
+-   Exported data structure
+
+```         
+00_raw_data/MyFitbitData
+└── Username
+    ├── Application
+    ├── Biometrics
+    ├── Google Data
+    │   ├── Health Fitness Data
+    │   └── Physical Activity
+    ├── Heart
+    ├── Menstrual Health
+    ├── Other
+    ├── Personal & Account
+    │   └── Media
+    ├── Physical Activity
+    ├── Programs
+    ├── Sleep
+    ├── Social
+    └── Stress
+```
+
+-   As an example: There are roughly 4.8k files in a Sleep folder produced over the period of 5 years. This includes:
+    -   1.7k Device Temperature output files of 44MB
+    -   0.8k Minute SpO2 files of 9MB
+    -   0.8k Heart Rate Variability Details of 3MB
+    -   7 README files
+
+
