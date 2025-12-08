@@ -53,9 +53,20 @@ unnest_sleep_json <- function(sleep_data_json) {
     mutate(all_levels_data = list(bind_rows(data, shortData))) |> 
     ungroup() |> 
     select(-data, -shortData) |> 
-    unnest_longer(all_levels_data)
+    unnest_longer(all_levels_data) |> 
+    unnest_wider(all_levels_data)
   
   output_df <- list(sleep_summary = output_df_1, sleep_details = output_df_2)
+  
+  # Update data type of date/time variables  
+  output_df$sleep_summary <- output_df$sleep_summary |> 
+    mutate(
+      across(c(startTime, endTime), lubridate::ymd_hms),
+      dateOfSleep = ymd(dateOfSleep)
+    )
+  output_df$sleep_details <- output_df$sleep_details |> 
+    mutate(dateOfSleep = ymd(dateOfSleep))
+  
   return(output_df)
 }
 
@@ -92,3 +103,8 @@ sleep_csv <- set_names(sleep_csv, sleep_categories_name)
 sleep_json <- merge_json2()
 sleep_json <- unnest_sleep_json(sleep_json)
 sleep_data <- c(sleep_csv, sleep_json)
+
+# Clean up the interim objects
+rm(sleep_json, sleep_csv)
+
+write_rds(sleep_data, "01_tidy_data/sleep_data.rds")

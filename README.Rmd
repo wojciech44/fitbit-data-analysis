@@ -67,4 +67,17 @@ This is a beginner-friendly, functional project written entirely in R and main o
     -   0.8k Heart Rate Variability Details of 3MB
     -   7 README files
 
+------------------------------------------------------------------------
 
+### Using the script
+
+#### Data compiler
+
+1.  Run the helper function, which:
+
+-   checks for libraries (if not found, there will a relevant notification displayed) - `dataset_inventory.R`
+-   creates inventory data frame that holds information on all of the files in 
+
+2.  Abc
+3. In case you are intersted only in particular ascept of your data (sleep, exercise etc.) you can run parsers relevant to that part:
+-  `sleep_inventory_parser.R` - see `sleep_analysis.Rmd`

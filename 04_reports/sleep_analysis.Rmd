@@ -1,0 +1,29 @@
+---
+title: "Sleep Analysis"
+author: "WK"
+date: "2025-12-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Sleep data analysis
+
+### Data structure
+
+By using `sleep_inventory_parser.R` we created to `sleep_data` list object, which contains information such as:
+```{r}
+summary(sleep_data)
+```
+
+```{r}
+sleep_data$device_temperature
+```
+
+---
+
+### Write to CSV
+
+By using `placeholder.R` we can generate CSV file each of the items from `aleep_data`- this step is optional. 
