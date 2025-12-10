@@ -13,17 +13,100 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ### Data structure
 
-By using `sleep_inventory_parser.R` we created to `sleep_data` list object, which contains information such as:
-```{r}
-summary(sleep_data)
+By using `sleep_inventory_parser.R` we created a `sleep_data` list object, which contains information such as:
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+sleep_data <- read_rds(here("01_tidy_data/sleep_data.rds"))
 ```
 
 ```{r}
-sleep_data$device_temperature
+summary(sleep_data)
 ```
+It was temporarily stored as `sleep_data.rds` object, which then can be used to produce the CSV files - see "Write to CSV" section.
 
 ---
 
 ### Write to CSV
 
 By using `placeholder.R` we can generate CSV file each of the items from `aleep_data`- this step is optional. 
+
+---
+
+### EDA of the main sleep parameters
+
+#### Initial clean up
+
+Duration is a difference between sleep's `endTime` & `startTime` in milliseconds. This needs changing to time in hours.
+```{r}
+main_sleep <- sleep_data$sleep_summary
+
+main_sleep <- main_sleep |> 
+  mutate(duration_hr = duration / 1000 / 3600,
+         timeInBed_hr = timeInBed / 60, 
+         .after = duration) |> 
+  select(logId:logType) |> 
+  distinct(logId, .keep_all = TRUE)
+
+sum(main_sleep$timeInBed_hr != main_sleep$duration_hr)
+```
+`timeInBed` represents duration but expressed in minutes.
+
+#### How did my sleep duration and it's effeciency changed over time?
+
+```{r}
+main_sleep |> 
+  ggplot(aes(x = dateOfSleep, y = duration_hr)) +
+  geom_point(alpha = 0.4, color = "midnightblue") +
+  geom_smooth(method = "lm", color = "violet") +
+  labs(
+    title = "Duration of sleep (hrs) over the years",
+    x = "Date",
+    y = "Duration (hrs)"
+  )
+```
+Based on the initial look at the plot - LM suggest a marginal improvement in the overall trend, i.e.increasing length of sleep, and around mid-2023 we can observe more consistency and concentration of the sleep duration around the line. Starting from 2025 the duration seems to be spread further from the line, concentrating more on the upper and lower extremes. 
+
+### What is my average length of sleep by week and by day of the week?
+
+```{r}
+#Extract day & weekday from the date
+main_sleep <- main_sleep |> 
+  mutate(year = year(dateOfSleep),
+         week = week(dateOfSleep),
+         weekday = wday(dateOfSleep),
+         .after = dateOfSleep)
+
+#Plot weekly average sleep duration over the year
+main_sleep |>
+  group_by(year, week) |>
+  summarise(avg_duration_hr = mean(duration_hr),
+            med_duration_hr = median(duration_hr)) |> 
+  ggplot(aes(x = week, y = avg_duration_hr)) +
+  geom_point(alpha = 0.7, color = "midnightblue") +
+  labs(
+    title = "Weekly Average Sleep Duration over the years",
+    x = "Week",
+    y = "Average Sleep duration"
+  ) +
+  facet_wrap(~year)
+
+  
+```
+Majority of the observed average sleep time is **between 7.5 to 8hrs**. There is some improvement over the years, as in years 2020-2022 lower end was closer to an **average of 7 hrs.**
+2024 seems to have the highest - this is verified below. 
+2023 has a gap between weeks 10 and 25 - that is when the old device went out and before I got a replacement. 
+There are some outliers with exceptionally low/high average sleep duration. Higher outliers could be due to weeks off from the activities (deload weeks) - worth investigating during the review of activities. 
+
+```{r}
+#Verify what year has the highest average sleep duration
+main_sleep |> 
+  group_by(year) |> 
+  summarise(avg_sleep_duration = mean(duration_hr)) |> 
+  arrange(desc(avg_sleep_duration))
+```
+
+### What is the gap in sleep duration between weekdays and weekends?
+
+
+
+#### How does the sleep `score_score` compare to the `sleep_summary$efficiency`?
