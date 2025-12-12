@@ -14,8 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ### Data structure
 
 By using `sleep_inventory_parser.R` we created a `sleep_data` list object, which contains information such as:
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r}
 sleep_data <- read_rds(here("01_tidy_data/sleep_data.rds"))
 ```
 
@@ -62,7 +61,8 @@ main_sleep |>
     title = "Duration of sleep (hrs) over the years",
     x = "Date",
     y = "Duration (hrs)"
-  )
+  ) +
+  theme_minimal()
 ```
 Based on the initial look at the plot - LM suggest a marginal improvement in the overall trend, i.e.increasing length of sleep, and around mid-2023 we can observe more consistency and concentration of the sleep duration around the line. Starting from 2025 the duration seems to be spread further from the line, concentrating more on the upper and lower extremes. 
 
@@ -73,7 +73,7 @@ Based on the initial look at the plot - LM suggest a marginal improvement in the
 main_sleep <- main_sleep |> 
   mutate(year = year(dateOfSleep),
          week = week(dateOfSleep),
-         weekday = wday(dateOfSleep),
+         weekday = wday(dateOfSleep, week_start = 1),
          .after = dateOfSleep)
 
 #Plot weekly average sleep duration over the year
@@ -88,8 +88,8 @@ main_sleep |>
     x = "Week",
     y = "Average Sleep duration"
   ) +
-  facet_wrap(~year)
-
+  facet_wrap(~year) +
+  theme_minimal()
   
 ```
 Majority of the observed average sleep time is **between 7.5 to 8hrs**. There is some improvement over the years, as in years 2020-2022 lower end was closer to an **average of 7 hrs.**
@@ -106,6 +106,46 @@ main_sleep |>
 ```
 
 ### What is the gap in sleep duration between weekdays and weekends?
+
+Two different ways to look at it:
+
+#### What's the overall trend on each day of the week? 
+```{r}
+main_sleep |> 
+  group_by(year, weekday) |> 
+  summarize(avg_duration_hr = mean(duration_hr)) |> 
+  ggplot(aes(x = weekday, y = avg_duration_hr)) +
+  geom_col(alpha = 0.85, fill = "midnightblue") +
+  facet_wrap(~year) + 
+  labs(
+    title = "Average Sleep Duration by days of the week, over the years",
+    x = "Weekday (Mon-Sun)",
+    y = "Average Sleep duration"
+  ) +
+  theme_minimal() +
+  scale_x_continuous(breaks = 1:7)
+```
+Main observations: 
+-  Wednesdays on averages show fairly similar sleep duration compared to weekends (usually day off from training)
+-  
+
+#### What's the difference between weekdays and weekends?
+```{r}
+main_sleep |> 
+  mutate(weekday_type = if_else(weekday >= 6, "weekend", "weekday"),
+         .after = weekday) |> 
+  group_by(year, weekday_type) |> 
+  summarize(avg_duration_hr = mean(duration_hr)) |> 
+  ggplot(aes(x = weekday_type, y = avg_duration_hr)) +
+  geom_col(alpha = 0.85, fill = "midnightblue") +
+  facet_wrap(~year) + 
+  labs(
+    title = "Average Sleep Duration over the years - weekend vs weekday",
+    x = "Weekday / Weekend",
+    y = "Average Sleep duration"
+  ) +
+  theme_minimal()
+```
 
 
 
