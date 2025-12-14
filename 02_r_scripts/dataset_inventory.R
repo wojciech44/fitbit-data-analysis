@@ -3,6 +3,7 @@ library(fs)
 library(tidyverse)
 library(jsonlite)
 library(here)
+library(hms)
 
 #fitbit_structure_tree <- dir_tree(path = "00_raw_data/MyFitbitData", type = "directory")
 fitbit_files <- dir_ls(path = "00_raw_data/MyFitbitData", recurse = TRUE)

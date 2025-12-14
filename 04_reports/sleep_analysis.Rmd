@@ -101,7 +101,7 @@ There are some outliers with exceptionally low/high average sleep duration. High
 #Verify what year has the highest average sleep duration
 main_sleep |> 
   group_by(year) |> 
-  summarise(avg_sleep_duration = mean(duration_hr)) |> 
+  summarise(avg_sleep_duration = hms(hours = mean(duration_hr))) |> 
   arrange(desc(avg_sleep_duration))
 ```
 
@@ -125,15 +125,16 @@ main_sleep |>
   theme_minimal() +
   scale_x_continuous(breaks = 1:7)
 ```
-Main observations: 
+General observations: 
 -  Wednesdays on averages show fairly similar sleep duration compared to weekends (usually day off from training)
--  
+-  Based on 2025 data - Mondays and Thursdays seem to have the lowest average length of sleep - to be considered for improvement
 
 #### What's the difference between weekdays and weekends?
 ```{r}
-main_sleep |> 
+main_sleep <- main_sleep |> 
   mutate(weekday_type = if_else(weekday >= 6, "weekend", "weekday"),
-         .after = weekday) |> 
+         .after = weekday)
+main_sleep |> 
   group_by(year, weekday_type) |> 
   summarize(avg_duration_hr = mean(duration_hr)) |> 
   ggplot(aes(x = weekday_type, y = avg_duration_hr)) +
@@ -146,7 +147,12 @@ main_sleep |>
   ) +
   theme_minimal()
 ```
-
-
+```{r}
+main_sleep |> 
+  group_by(weekday_type) |> 
+  summarize(avg_duration_hr = mean(duration_hr)) |> 
+  mutate(diff_m = hms(hours = (avg_duration_hr - lag(avg_duration_hr))))
+```
+Throughout the years, on average sleep is longer by ~29 minutes during weekends. 
 
 #### How does the sleep `score_score` compare to the `sleep_summary$efficiency`?
