@@ -95,7 +95,7 @@ main_sleep |>
 Majority of the observed average sleep time is **between 7.5 to 8hrs**. There is some improvement over the years, as in years 2020-2022 lower end was closer to an **average of 7 hrs.**
 2024 seems to have the highest - this is verified below. 
 2023 has a gap between weeks 10 and 25 - that is when the old device went out and before I got a replacement. 
-There are some outliers with exceptionally low/high average sleep duration. Higher outliers could be due to weeks off from the activities (deload weeks) - worth investigating during the review of activities. 
+There are some outliers with exceptionally low/high average sleep duration. Higher-end outliers could be due to weeks off from the activities (deload weeks) - worth investigating during the review of activities. 
 
 ```{r}
 #Verify what year has the highest average sleep duration
@@ -153,6 +153,35 @@ main_sleep |>
   summarize(avg_duration_hr = mean(duration_hr)) |> 
   mutate(diff_m = hms(hours = (avg_duration_hr - lag(avg_duration_hr))))
 ```
-Throughout the years, on average sleep is longer by ~29 minutes during weekends. 
+Throughout the years, on average sleep is longer by **~29 mins** during weekends. 
+
+#### Investigating discrepancy between `sleep_summary` & `sleep_details`
+
+It was noted that 
+```{r}
+compare_summary <- sleep_data$sleep_summary |> 
+  select(logId, summary_id, summary_minutes) |> 
+  left_join(sleep_data$sleep_details |>
+              summarize(level_minutes = sum(seconds) / 60, 
+                        .by = c(logId, dateOfSleep, level)),
+            by = join_by(logId == logId, summary_id == level)) |> 
+  mutate(diff_min = summary_minutes - level_minutes) |> 
+  ungroup()
+
+head(compare_summary)
+```
+
+Diff tells by how much summary is over/understated compared to details. 
+
+Check by how much each sleep stage differs in the summary table vs details table:
+```{r}
+compare_summary |> 
+  summarize(avg_diff_min = mean(diff_min), .by = summary_id)
+```
+
+The most significant difference on average is observed in values of `asleep`, where data for `details` captures longer duration of the stage compared to `summary` (**40 mins**). 
+This seems to be due to the fact that `light` and `rem` last shorter in the `summary` table by **32 mins** and **12 mins** respectively
+The difference is not explained in the documentation and my assumptions are that the there is some back-end logic which sifts through the data gathered into details before summary output is produced. 
+
 
 #### How does the sleep `score_score` compare to the `sleep_summary$efficiency`?
