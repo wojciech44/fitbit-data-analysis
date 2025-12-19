@@ -157,9 +157,9 @@ Throughout the years, on average sleep is longer by **~29 mins** during weekends
 
 #### Investigating discrepancy between `sleep_summary` & `sleep_details`
 
-It was noted that 
+It was noted that when observations are grouped by night (`logId`), the `sleep_details` do not match with the `sleep_summary`.
 ```{r}
-compare_summary <- sleep_data$sleep_summary |> 
+sleep_compare <- sleep_data$sleep_summary |> 
   select(logId, summary_id, summary_minutes) |> 
   left_join(sleep_data$sleep_details |>
               summarize(level_minutes = sum(seconds) / 60, 
@@ -168,20 +168,69 @@ compare_summary <- sleep_data$sleep_summary |>
   mutate(diff_min = summary_minutes - level_minutes) |> 
   ungroup()
 
-head(compare_summary)
+head(sleep_compare)
 ```
 
 Diff tells by how much summary is over/understated compared to details. 
 
 Check by how much each sleep stage differs in the summary table vs details table:
 ```{r}
-compare_summary |> 
+sleep_compare |> 
   summarize(avg_diff_min = mean(diff_min), .by = summary_id)
 ```
 
 The most significant difference on average is observed in values of `asleep`, where data for `details` captures longer duration of the stage compared to `summary` (**40 mins**). 
-This seems to be due to the fact that `light` and `rem` last shorter in the `summary` table by **32 mins** and **12 mins** respectively
+This seems to be due to the fact that `light` and `rem` last shorter in the `summary` table by **32 mins** and **12 mins** respectively.
 The difference is not explained in the documentation and my assumptions are that the there is some back-end logic which sifts through the data gathered into details before summary output is produced. 
 
+#### Deep sleep - how long does it last and what time does it usually start?*
+
+To answer this question use `sleep_details`, which marks the start and end time of the stage. 
+```{r}
+sleep_deep <- sleep_data$sleep_details |> 
+  arrange(dateTime) |> 
+  filter(level == "deep") |> 
+  mutate(level_start = ymd_hms(dateTime),
+         level_end = ymd_hms(dateTime) + seconds,
+         full_hr_start = hour(level_start),
+         full_hr_end = hour(level_end)) |> 
+  select(logId, level, level_start, full_hr_start, level_end, full_hr_end, seconds)
+sleep_deep
+```
+
+Assess what is the average length of deep sleep registered for the time intervals marked by the full hour.
+```{r}
+sleep_deep |> 
+  summarize(avg_duration_min = mean(seconds) / 60, 
+            n_level_registered = n(),
+            .by = full_hr_start) |> 
+  arrange(full_hr_start) 
+```
+
+**Note:** The above considers all occurrences registered by the watch and same night might have registered multiple instances of deep sleep (over 5.7k occurrences in total).
+Overall trend: **deep sleep registered between 22:00 - 24:00 tends to be the longest**, averaging at approx. **32 mins** & **27 mins** in the first and second hour respectively. 
+Average duration tends to drop after the midnight **(~25 mins)** - with each passing hours the deep sleep being shorter on average by **2 mins**.
+
+Also, given there are immaterial number of observations (ranging from 1 to 22) where the deep sleep was registered between 8:00 - 21:00, those can be disregarded. 
+
+The following sifts through all observations and focuses only one two longest registered deep stages per night - to verify if that is in line with the initial observation.
+```{r}
+sleep_deep_selected <- sleep_deep |> 
+  slice_max(seconds, n = 2, by = logId) |> 
+  summarize(avg_duration_min = mean(seconds) / 60, 
+            n_level_registered = n(),
+            .by = full_hr_start) |> 
+  arrange(full_hr_start)
+sleep_deep_selected
+```
+
+When considering only the two longest occurrences per night, total observations reduced from 5.7k to 3.1k.
+The **longest average duration of deep sleep was registered between 22:00 - 23:00**, lasting approx. **36 mins**. 
+However, there is **no significant difference** noted between the duration of deep sleep registered **between 23:00 - 2:00**, after which it gradually decreases from **33 mins** at 1:00 to **27.5 mins** at 4:00.
+
+#### What is the "best" time to go to sleep? i.e. time of falling asleep vs duration of deep sleep. 
+
+Cross check the analysis from previous point - are these two in line?
+TO BE CONTINUED
 
 #### How does the sleep `score_score` compare to the `sleep_summary$efficiency`?
