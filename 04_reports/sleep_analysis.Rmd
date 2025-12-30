@@ -2,40 +2,57 @@
 title: "Sleep Analysis"
 author: "WK"
 date: "2025-12-08"
-output: html_document
+output: 
+  html_document:
+    df_print: kable
+    toc: true
+    toc_float: true
+    toc_depth: 4
+editor_options: 
+  markdown: 
+    wrap: sentence
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(fs)
+library(tidyverse)
+library(jsonlite)
+library(here)
+library(hms)
 ```
 
 ## Sleep data analysis
 
 ### Data structure
 
-By using `sleep_inventory_parser.R` we created a `sleep_data` list object, which contains information such as:
-```{r}
+By using `sleep_inventory_parser.R` we created a `sleep_data` list object, which holds information on:
+
+```{r, include=FALSE}
 sleep_data <- read_rds(here("01_tidy_data/sleep_data.rds"))
 ```
 
 ```{r}
 summary(sleep_data)
 ```
+
 It was temporarily stored as `sleep_data.rds` object, which then can be used to produce the CSV files - see "Write to CSV" section.
 
----
+------------------------------------------------------------------------
 
 ### Write to CSV
 
-By using `placeholder.R` we can generate CSV file each of the items from `aleep_data`- this step is optional. 
+By using `placeholder.R` we can generate CSV file each of the items from `aleep_data`- this step is optional.
 
----
+------------------------------------------------------------------------
 
 ### EDA of the main sleep parameters
 
 #### Initial clean up
 
-Duration is a difference between sleep's `endTime` & `startTime` in milliseconds. This needs changing to time in hours.
+Duration is a difference between sleep's `endTime` & `startTime` in milliseconds.
+This needs changing to time in hours.
+
 ```{r}
 main_sleep <- sleep_data$sleep_summary
 
@@ -45,12 +62,21 @@ main_sleep <- main_sleep |>
          .after = duration) |> 
   select(logId:logType) |> 
   distinct(logId, .keep_all = TRUE)
+```
 
+Check if `timeInBed` expressed in hours is equal to `duration` expressed in hour:
+
+```{r}
 sum(main_sleep$timeInBed_hr != main_sleep$duration_hr)
 ```
+
+No differences identified.
+
 `timeInBed` represents duration but expressed in minutes.
 
-#### How did my sleep duration and it's effeciency changed over time?
+------------------------------------------------------------------------
+
+#### How did my sleep duration and its effeciency changed over time?
 
 ```{r}
 main_sleep |> 
@@ -64,9 +90,13 @@ main_sleep |>
   ) +
   theme_minimal()
 ```
-Based on the initial look at the plot - LM suggest a marginal improvement in the overall trend, i.e.increasing length of sleep, and around mid-2023 we can observe more consistency and concentration of the sleep duration around the line. Starting from 2025 the duration seems to be spread further from the line, concentrating more on the upper and lower extremes. 
 
-### What is my average length of sleep by week and by day of the week?
+Based on the initial look at the plot - LM suggest a marginal improvement in the overall trend, i.e.increasing length of sleep, and around mid-2023 we can observe more consistency and concentration of the sleep duration around the line.
+Starting from 2025 the duration seems to be spread further from the line, concentrating more on the upper and lower extremes.
+
+------------------------------------------------------------------------
+
+#### What is my average length of sleep by week and by day of the week?
 
 ```{r}
 #Extract day & weekday from the date
@@ -92,10 +122,12 @@ main_sleep |>
   theme_minimal()
   
 ```
-Majority of the observed average sleep time is **between 7.5 to 8hrs**. There is some improvement over the years, as in years 2020-2022 lower end was closer to an **average of 7 hrs.**
-2024 seems to have the highest - this is verified below. 
-2023 has a gap between weeks 10 and 25 - that is when the old device went out and before I got a replacement. 
-There are some outliers with exceptionally low/high average sleep duration. Higher-end outliers could be due to weeks off from the activities (deload weeks) - worth investigating during the review of activities. 
+
+Majority of the observed average sleep time is **between 7.5 to 8hrs**.
+There is some improvement over the years, as in years 2020-2022 lower end was closer to an **average of 7 hrs.** 2024 seems to have the highest - this is verified below.
+2023 has a gap between weeks 10 and 25 - that is when the old device went out and before I got a replacement.
+There are some outliers with exceptionally low/high average sleep duration.
+Higher-end outliers could be due to weeks off from the activities (deload weeks) - worth investigating during the review of activities.
 
 ```{r}
 #Verify what year has the highest average sleep duration
@@ -105,11 +137,14 @@ main_sleep |>
   arrange(desc(avg_sleep_duration))
 ```
 
-### What is the gap in sleep duration between weekdays and weekends?
+------------------------------------------------------------------------
+
+#### What is the gap in sleep duration between weekdays and weekends?
 
 Two different ways to look at it:
 
-#### What's the overall trend on each day of the week? 
+#### What's the overall trend on each day of the week?
+
 ```{r}
 main_sleep |> 
   group_by(year, weekday) |> 
@@ -119,17 +154,17 @@ main_sleep |>
   facet_wrap(~year) + 
   labs(
     title = "Average Sleep Duration by days of the week, over the years",
-    x = "Weekday (Mon-Sun)",
+    x = "Day of the week (Mon-Sun)",
     y = "Average Sleep duration"
   ) +
   theme_minimal() +
   scale_x_continuous(breaks = 1:7)
 ```
-General observations: 
--  Wednesdays on averages show fairly similar sleep duration compared to weekends (usually day off from training)
--  Based on 2025 data - Mondays and Thursdays seem to have the lowest average length of sleep - to be considered for improvement
+
+General observations: - Wednesdays on averages show fairly similar sleep duration compared to weekends (usually day off from training) - Based on 2025 data - Mondays and Thursdays seem to have the lowest average length of sleep - to be considered for improvement
 
 #### What's the difference between weekdays and weekends?
+
 ```{r}
 main_sleep <- main_sleep |> 
   mutate(weekday_type = if_else(weekday >= 6, "weekend", "weekday"),
@@ -142,22 +177,53 @@ main_sleep |>
   facet_wrap(~year) + 
   labs(
     title = "Average Sleep Duration over the years - weekend vs weekday",
-    x = "Weekday / Weekend",
+    x = element_blank(),
     y = "Average Sleep duration"
   ) +
   theme_minimal()
 ```
+
+Summary statistics shown on a boxplot.
+
+```{r}
+main_sleep |> 
+  ggplot(aes(x = weekday_type, y = duration_hr)) +
+  geom_boxplot(alpha = 0.4, fill = "midnightblue") +
+  facet_wrap(~year) +
+  labs(
+    title = "Sleep Duration over the years - weekend vs weekday",
+    x = element_blank(),
+    y = "Sleep duration (hours)"
+  ) +
+  scale_y_continuous(breaks = seq(0, 10, 2)) +
+  theme_minimal() +
+  stat_summary(color = "midnightblue") 
+
+ggsave(here("03_plots/main_sleep_boxplot.png"))
+```
+Analyzing the summary statistics, we can note few observations:
+-   2020 is the only year with a similar spread in length of sleep on both weekdays & weekends
+-   Outliers on weekdays are present on both ends of the boxplot - they correspond to sleep of under 6 hrs and over 9 hrs
+-   Outliers on weekends are almost exclusively present on the lower end of the sleep's length - ranging from 1hr to under 6 hrs
+-   50% of the registered sleep tends to last between 6-7 hrs on weekends and 7.5-9 hrs on weekends
+-   2025 shows many higher-end outliers on weekdays, where sleep lasted roughly 9 hrs - suggesting those could be Wednesdays (days off from the training). Additionally, there is more significant gap between the weekdays vs weekends, compared to previous years, as the boxes almost do not overlap. 
+
+
 ```{r}
 main_sleep |> 
   group_by(weekday_type) |> 
   summarize(avg_duration_hr = mean(duration_hr)) |> 
   mutate(diff_m = hms(hours = (avg_duration_hr - lag(avg_duration_hr))))
 ```
-Throughout the years, on average sleep is longer by **~29 mins** during weekends. 
 
-#### Investigating discrepancy between `sleep_summary` & `sleep_details`
+Throughout the years, on average sleep is longer by **\~29 mins** during weekends.
+
+------------------------------------------------------------------------
+
+#### Investigate discrepancy between `sleep_summary` & `sleep_details`
 
 It was noted that when observations are grouped by night (`logId`), the `sleep_details` do not match with the `sleep_summary`.
+
 ```{r}
 sleep_compare <- sleep_data$sleep_summary |> 
   select(logId, summary_id, summary_minutes) |> 
@@ -171,21 +237,75 @@ sleep_compare <- sleep_data$sleep_summary |>
 head(sleep_compare)
 ```
 
-Diff tells by how much summary is over/understated compared to details. 
+Diff tells by how much summary is over/understated compared to details.
 
 Check by how much each sleep stage differs in the summary table vs details table:
+
 ```{r}
 sleep_compare |> 
   summarize(avg_diff_min = mean(diff_min), .by = summary_id)
 ```
 
-The most significant difference on average is observed in values of `asleep`, where data for `details` captures longer duration of the stage compared to `summary` (**40 mins**). 
+The most significant difference on average is observed in values of `asleep`, where data for `details` captures longer duration of the stage compared to `summary` (**40 mins**).
 This seems to be due to the fact that `light` and `rem` last shorter in the `summary` table by **32 mins** and **12 mins** respectively.
-The difference is not explained in the documentation and my assumptions are that the there is some back-end logic which sifts through the data gathered into details before summary output is produced. 
+The difference is not explained in the documentation and my assumptions are that the there is some back-end logic which sifts through the data gathered into details before summary output is produced.
 
-#### Deep sleep - how long does it last and what time does it usually start?*
+------------------------------------------------------------------------
 
-To answer this question use `sleep_details`, which marks the start and end time of the stage. 
+#### Investigate duplicate observations in `sleep_summary` & `sleep_details`
+
+There seems to be duplicate entries for some of the nights, where `level_start` timestamp is exactly the same (no two occurrences can start at the same time).
+As an example it was seen in `logID == 29189152978`.
+
+```{r}
+sleep_data$sleep_details |> 
+  filter(logId == 29189152978, level == "deep") |> 
+  arrange(dateTime)
+```
+
+The same can be observed for both summary and details.
+
+```{r}
+sleep_data$sleep_summary |> 
+  filter(logId == 29189152978)
+```
+
+Check the count of observations for each night.
+A single date of sleep with non-duplicate entries is expected to have 4 lines - for each of the levels (deep, wake, light, rem)
+
+```{r}
+sleep_data$sleep_summary |>
+  count(logId, startTime, sort = TRUE, name = "n_observations") |> 
+  filter(n_observations > 4)
+
+sleep_data$sleep_details |> 
+  count(logId, dateTime, sort = TRUE, name = "n_observations") |> 
+  filter(n_observations > 1) #|> 
+  #summarize(dupes = sum(n_observations - 1))
+```
+
+There are **51 instances** of duplicated data in the `sleep_data$sleep_summary` table, which translates to roughly **3.8k of duplicated lines**.
+
+```{r}
+sleep_data$sleep_summary |> 
+  filter(logId == 36082386731) |> 
+  arrange(startTime) 
+
+sleep_data$sleep_details |> 
+  filter(logId == 35126410427) |> 
+  arrange(dateTime) #|> 
+  #distinct()
+```
+
+The duplicated values **did not cause any disruptions** to the initial EDA done with the use of `sleep_main`, as it was reduced to show only the distinct values.
+This finding however, required a tweak to the following section focused on Deep Sleep analysis.
+
+------------------------------------------------------------------------
+
+#### Deep sleep - how long does it last and what time does it usually start?
+
+To answer this question use `sleep_details`, which marks the start and end time of the stage.
+
 ```{r}
 sleep_deep <- sleep_data$sleep_details |> 
   arrange(dateTime) |> 
@@ -195,10 +315,11 @@ sleep_deep <- sleep_data$sleep_details |>
          full_hr_start = hour(level_start),
          full_hr_end = hour(level_end)) |> 
   select(logId, level, level_start, full_hr_start, level_end, full_hr_end, seconds)
-sleep_deep
+head(sleep_deep)
 ```
 
 Assess what is the average length of deep sleep registered for the time intervals marked by the full hour.
+
 ```{r}
 sleep_deep |> 
   summarize(avg_duration_min = mean(seconds) / 60, 
@@ -208,12 +329,14 @@ sleep_deep |>
 ```
 
 **Note:** The above considers all occurrences registered by the watch and same night might have registered multiple instances of deep sleep (over 5.7k occurrences in total).
-Overall trend: **deep sleep registered between 22:00 - 24:00 tends to be the longest**, averaging at approx. **32 mins** & **27 mins** in the first and second hour respectively. 
-Average duration tends to drop after the midnight **(~25 mins)** - with each passing hours the deep sleep being shorter on average by **2 mins**.
+Overall trend: **deep sleep registered between 22:00 - 24:00 tends to be the longest**, averaging at approx.
+**32 mins** & **27 mins** in the first and second hour respectively.
+Average duration tends to drop after the midnight **(\~25 mins)** - with each passing hours the deep sleep being shorter on average by **2 mins**.
 
-Also, given there are immaterial number of observations (ranging from 1 to 22) where the deep sleep was registered between 8:00 - 21:00, those can be disregarded. 
+Also, given there are immaterial number of observations (ranging from 1 to 22) where the deep sleep was registered between 8:00 - 21:00, those can be disregarded.
 
 The following sifts through all observations and focuses only one two longest registered deep stages per night - to verify if that is in line with the initial observation.
+
 ```{r}
 sleep_deep_selected <- sleep_deep |> 
   slice_max(seconds, n = 2, by = logId) |> 
@@ -221,14 +344,17 @@ sleep_deep_selected <- sleep_deep |>
             n_level_registered = n(),
             .by = full_hr_start) |> 
   arrange(full_hr_start)
-sleep_deep_selected
+head(sleep_deep_selected)
 ```
 
 When considering only the two longest occurrences per night, total observations reduced from 5.7k to 3.1k.
-The **longest average duration of deep sleep was registered between 22:00 - 23:00**, lasting approx. **36 mins**. 
+The **longest average duration of deep sleep was registered between 22:00 - 23:00**, lasting approx.
+**36 mins**.
 However, there is **no significant difference** noted between the duration of deep sleep registered **between 23:00 - 2:00**, after which it gradually decreases from **33 mins** at 1:00 to **27.5 mins** at 4:00.
 
-#### What is the "best" time to go to sleep? i.e. time of falling asleep vs duration of deep sleep. 
+------------------------------------------------------------------------
+
+#### What is the "best" time to go to sleep? i.e. time of falling asleep vs duration of deep sleep.
 
 Cross check the analysis from previous point - are these two in line?
 TO BE CONTINUED
