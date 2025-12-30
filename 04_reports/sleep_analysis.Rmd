@@ -179,7 +179,7 @@ main_sleep |>
     title = "Average Sleep Duration over the years - weekend vs weekday",
     x = element_blank(),
     y = "Average Sleep duration"
-  ) +
+  ) + 
   theme_minimal()
 ```
 
@@ -199,7 +199,7 @@ main_sleep |>
   theme_minimal() +
   stat_summary(color = "midnightblue") 
 
-ggsave(here("03_plots/main_sleep_boxplot.png"))
+#ggsave(here("03_plots/main_sleep_boxplot.png"))
 ```
 Analyzing the summary statistics, we can note few observations:
 -   2020 is the only year with a similar spread in length of sleep on both weekdays & weekends
@@ -276,17 +276,19 @@ A single date of sleep with non-duplicate entries is expected to have 4 lines - 
 ```{r}
 sleep_data$sleep_summary |>
   count(logId, startTime, sort = TRUE, name = "n_observations") |> 
-  filter(n_observations > 4)
+  filter(n_observations > 4) |> 
+  head()
 
 sleep_data$sleep_details |> 
   count(logId, dateTime, sort = TRUE, name = "n_observations") |> 
-  filter(n_observations > 1) #|> 
-  #summarize(dupes = sum(n_observations - 1))
+  filter(n_observations > 1) |> 
+  #summarize(dupes = sum(n_observations - 1)) |> 
+  head()
 ```
 
 There are **51 instances** of duplicated data in the `sleep_data$sleep_summary` table, which translates to roughly **3.8k of duplicated lines**.
 
-```{r}
+```{r include=FALSE}
 sleep_data$sleep_summary |> 
   filter(logId == 36082386731) |> 
   arrange(startTime) 
@@ -314,7 +316,8 @@ sleep_deep <- sleep_data$sleep_details |>
          level_end = ymd_hms(dateTime) + seconds,
          full_hr_start = hour(level_start),
          full_hr_end = hour(level_end)) |> 
-  select(logId, level, level_start, full_hr_start, level_end, full_hr_end, seconds)
+  select(logId, level, level_start, full_hr_start, level_end, full_hr_end, seconds) |> 
+  distinct()
 head(sleep_deep)
 ```
 
@@ -328,12 +331,12 @@ sleep_deep |>
   arrange(full_hr_start) 
 ```
 
-**Note:** The above considers all occurrences registered by the watch and same night might have registered multiple instances of deep sleep (over 5.7k occurrences in total).
+**Note:** The above considers all occurrences registered by the watch and same night might have registered multiple instances of deep sleep (over 5.5k occurrences in total).
 Overall trend: **deep sleep registered between 22:00 - 24:00 tends to be the longest**, averaging at approx.
 **32 mins** & **27 mins** in the first and second hour respectively.
 Average duration tends to drop after the midnight **(\~25 mins)** - with each passing hours the deep sleep being shorter on average by **2 mins**.
 
-Also, given there are immaterial number of observations (ranging from 1 to 22) where the deep sleep was registered between 8:00 - 21:00, those can be disregarded.
+Also, given there are immaterial number of observations (ranging from 1 to 54) where the deep sleep was registered between 8:00 - 21:00, those can be disregarded.
 
 The following sifts through all observations and focuses only one two longest registered deep stages per night - to verify if that is in line with the initial observation.
 
@@ -347,14 +350,44 @@ sleep_deep_selected <- sleep_deep |>
 head(sleep_deep_selected)
 ```
 
-When considering only the two longest occurrences per night, total observations reduced from 5.7k to 3.1k.
+When considering only the two longest occurrences per night, total observations reduced from 5.5k to 3.1k.
 The **longest average duration of deep sleep was registered between 22:00 - 23:00**, lasting approx.
 **36 mins**.
-However, there is **no significant difference** noted between the duration of deep sleep registered **between 23:00 - 2:00**, after which it gradually decreases from **33 mins** at 1:00 to **27.5 mins** at 4:00.
+However, there is **no significant difference** noted between the duration of deep sleep registered **between 23:00 - 2:00**, after which it gradually decreases from **33 mins** (between 1:00 - 2:00) to **27.5 mins** between 3:00 - 4:00.
 
 ------------------------------------------------------------------------
 
 #### What is the "best" time to go to sleep? i.e. time of falling asleep vs duration of deep sleep.
+
+To answer this question we will be looking at `sleep_deep` which holds information about the duration & `main_sleep` which has time stamp of when the sleep started. 
+```{r}
+main_sleep |> 
+  select(logId:startTime) |> 
+  inner_join(
+    (sleep_deep |> 
+       group_by(logId, level) |> 
+       summarize(duration_min = sum(seconds) / 60)),
+    by = "logId"
+  ) |> 
+  mutate(startTime_hr = hour(startTime), .after = startTime,
+         # Create offset to be able to plot this on a diagram in a desired order (i.e. starting at 20:00)
+         time_offset = if_else(startTime_hr < 12, startTime_hr + 24, startTime_hr)) |> 
+  summarize(avg_duration_min = mean(duration_min), .by = time_offset) |> 
+  filter(time_offset > 18) |> 
+  # Plot the joined tables
+  ggplot(aes(x = (time_offset), y = avg_duration_min)) +
+  geom_point(color = "midnightblue", alpha = 0.8) +
+  scale_x_continuous(breaks = seq(19, 30, 1),
+                     labels = c("19:00" ,"20:00", "21:00", "22:00", "23:00", "00:00", 
+                                "01:00", "02:00", "03:00", "04:00", "05:00", "06:00")) +
+  labs(
+    title = "Duration of Deep Sleep by Time of falling asleep",
+    x = "",
+    y = "Average duration (minutes)"
+  ) +
+  theme_minimal()
+```
+CHANGE THE SHAPE OF GEOM-POINT? So it represents the whole "area"?
 
 Cross check the analysis from previous point - are these two in line?
 TO BE CONTINUED
