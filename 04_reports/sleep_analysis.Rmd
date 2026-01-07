@@ -375,8 +375,8 @@ main_sleep |>
   summarize(avg_duration_min = mean(duration_min), .by = time_offset) |> 
   filter(time_offset > 18) |> 
   # Plot the joined tables
-  ggplot(aes(x = (time_offset), y = avg_duration_min)) +
-  geom_point(color = "midnightblue", alpha = 0.8) +
+  ggplot(aes(y = avg_duration_min)) +
+  geom_segment(aes(x = time_offset, xend = time_offset + 1), color = "midnightblue", alpha = 0.8, size = 1.5) +
   scale_x_continuous(breaks = seq(19, 30, 1),
                      labels = c("19:00" ,"20:00", "21:00", "22:00", "23:00", "00:00", 
                                 "01:00", "02:00", "03:00", "04:00", "05:00", "06:00")) +
@@ -387,7 +387,6 @@ main_sleep |>
   ) +
   theme_minimal()
 ```
-CHANGE THE SHAPE OF GEOM-POINT? So it represents the whole "area"?
 
 Cross check the analysis from previous point - are these two in line?
 TO BE CONTINUED
