@@ -1,3 +1,5 @@
+####### DECOMMISSIONED - REPLACED BY `sleep_inventory_parser.R`
+
 # Compile the relevant Sleep data into tables
 
 # Sleep inventory & its overview ------------------------------------------
