@@ -16,15 +16,15 @@ This project is currently under construction.
 
 **Milestones**:
 
--   Compile files inventory - `dataset_inventory.R` ✅
--   Read and merge sleep data (json and csv) - `sleep_inventory_parser.R` ✅
--   Sleep EDA - `sleep_analysis.Rmd` 🚧
--   Read and merge activity data (json and csv) 🔰
--   Activities EDA 🔰
--   Read and merge all other data categories (Heart Rate, Estimated Oxygen) 🔰
--   Global setting to produce plots 🔰
--   Data compiler - produce single csv per category 🔰
--   Conclusions 🔰
+-   [x] Compile files inventory - `dataset_inventory.R` ✅
+-   [x] Read and merge sleep data (json and csv) - `sleep_inventory_parser.R` ✅
+-   [x] Sleep EDA - `sleep_analysis.Rmd` [Click here to view the full Sleep Analysis Report 📊](04_reports/sleep_analysis.md)
+-   [ ] Read and merge activity data (json and csv) 🚧
+-   [ ] Activities EDA 🔰
+-   [ ] Read and merge all other data categories (Heart Rate, Estimated Oxygen) 🔰
+-   [ ] Global setting to produce plots 🔰
+-   [ ] Data compiler - produce single csv per category 🔰
+-   [ ] Conclusions 🔰
 
 **Wishlist**:
 
@@ -46,6 +46,12 @@ It is segmented into sections which by design should be executable independently
 -   Do I sleep better because of the exercises?
 -   Do I have any `weird` sleep patterns which I am unaware of?
 -   Which Fitbit features actually matter for long-term tracking and improvement?
+
+### Reports and visualizations
+
+Check the detailed analysis below:
+
+-   [Sleep Analysis](04_reports/sleep_analysis.md)
 
 ------------------------------------------------------------------------
 
@@ -126,10 +132,10 @@ It is segmented into sections which by design should be executable independently
 
 ### 1. `dataset_inventory.R`
 
-This will load the required libraries and create inventory object, which is required in the next steps.
-You want to have a full list of items exported from Fitbit/Google to get a proper overview of what you are dealing with. 
+This will load the required libraries and create inventory object, which is required in the next steps. You want to have a full list of items exported from Fitbit/Google to get a proper overview of what you are dealing with.
 
 In case of missing libraries feel free to use the following code to check and install missing components:
+
 ```{r eval=FALSE}
 libs <- c("fs", "tidyverse", "jsonlite", "here", "hms")
 
@@ -141,16 +147,13 @@ if (any(installed_libs == FALSE)) {
 
 ### 2. `sleep_inventory_parser.R`
 
-Build a sub-inventory focused on sleep and define functions which are used for merging relevant sleep json and csv files. 
-### 3. `04_reports/sleep_analysis.Rmd`
+Build a sub-inventory focused on sleep and define functions which are used for merging relevant sleep json and csv files. \### 3. `04_reports/sleep_analysis.Rmd`
 
-EDA of the sleep, trying to answer some of the questions based on initial data observations.  
-
+EDA of the sleep, trying to answer some of the questions based on initial data observations.
 
 ### 4. `activity_parser.R`
 
-Currently under construction - investigating a possibility of elevating some of the parser features to the main inventory object - `fitbit_inventory`. This would enrich it with additional info such as relevant categories, splitting dates into separate fields etc. Benefit: no need to have category-specific inventories - those can be derived from the main one. 
-Main challenge here - the data (esp. file names) do not follow the same format across categories (sleep, activities, heart rate etc.).
+Currently under construction - investigating a possibility of elevating some of the parser features to the main inventory object - `fitbit_inventory`. This would enrich it with additional info such as relevant categories, splitting dates into separate fields etc. Benefit: no need to have category-specific inventories - those can be derived from the main one. Main challenge here - the data (esp. file names) do not follow the same format across categories (sleep, activities, heart rate etc.).
 
 ### Data compiler - 🚧 WORK IN PROGRESS 🚧
 
