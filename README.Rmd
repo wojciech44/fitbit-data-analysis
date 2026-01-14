@@ -2,8 +2,7 @@
 title: "README"
 output: 
   github_document:
-    toc_depth: 4
-    toc: true
+    df_print: kable
 editor_options: 
   markdown: 
     wrap: sentence
