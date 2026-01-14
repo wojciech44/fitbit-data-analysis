@@ -1,22 +1,26 @@
----
-title: "README"
-output: 
-  github_document:
-    toc_depth: 4
-    toc: true
-editor_options: 
-  markdown: 
-    wrap: sentence
-date: "2026-01-14"
----
+# README
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+2026-01-14
+
+-   [**R** you **fit** enough? Fitbit Data analysis with R.](#r-you-fit-enough-fitbit-data-analysis-with-r)
+    -   [🚧 – WORK IN PROGRESS – 🚧](#construction--work-in-progress--construction)
+    -   [Overview](#overview)
+        -   [Reports and visualizations](#reports-and-visualizations)
+    -   [Key considerations and prerequisites:](#key-considerations-and-prerequisites)
+        -   [R Packages used in the project](#r-packages-used-in-the-project)
+        -   [Additional remarks](#additional-remarks)
+        -   [Data Structure:](#data-structure)
+    -   [Project structure](#project-structure)
+    -   [How to run the analysis](#how-to-run-the-analysis)
+        -   [1. `dataset_inventory.R`](#1-dataset_inventoryr)
+        -   [2. `sleep_inventory_parser.R`](#2-sleep_inventory_parserr)
+        -   [3. `04_reports/sleep_analysis.Rmd`](#3-04_reportssleep_analysisrmd)
+        -   [4. `activity_parser.R`](#4-activity_parserr)
+        -   [Data compiler - 🚧 WORK IN PROGRESS 🚧](#data-compiler---construction-work-in-progress-construction)
 
 # **R** you **fit** enough? Fitbit Data analysis with R.
 
-## 🚧 -- WORK IN PROGRESS -- 🚧
+## 🚧 – WORK IN PROGRESS – 🚧
 
 This project is currently under construction.
 
@@ -39,7 +43,7 @@ This project is currently under construction.
 
 ------------------------------------------------------------------------
 
-## Overview
+## Overview {#overview}
 
 **Purpose of this project** is to wrangle and analyse years of data collected by the `Fitbit` wearables (`Versa 2` & `Versa 4`). It is a learning project entirely written in **R**, utilizing packages from `tidyverse`, `ggplot2` and related. It is meant to be a beginner-friendly, functional project as I welcome new technology.
 
@@ -53,7 +57,7 @@ It is segmented into sections which by design should be executable independently
 -   Do I have any `weird` sleep patterns which I am unaware of?
 -   Which Fitbit features actually matter for long-term tracking and improvement?
 
-### Reports and visualizations
+### Reports and visualizations {#reports-and-visualizations}
 
 Check the detailed analysis below:
 
@@ -61,9 +65,9 @@ Check the detailed analysis below:
 
 ------------------------------------------------------------------------
 
-## Key considerations and prerequisites:
+## Key considerations and prerequisites: {#key-considerations-and-prerequisites}
 
-### R Packages used in the project
+### R Packages used in the project {#r-packages-used-in-the-project}
 
 -   [fs](https://fs.r-lib.org/)
 -   [tidyverse](https://tidyverse.org/)
@@ -71,16 +75,16 @@ Check the detailed analysis below:
 -   [here](https://here.r-lib.org/)
 -   [hms](https://hms.tidyverse.org/)
 
-### Additional remarks
+### Additional remarks {#additional-remarks}
 
--   Data was collected using `Fitbit` devices: `Versa 2` & `Versa 4`- not sure if this is compatible with other wearables from the brand (i.e. data collected by other devices might come in a different structure); see data structure for more details
+-   Data was collected using `Fitbit` devices: `Versa 2` & `Versa 4`- not sure if this is compatible with other wearables from the brand (i.e. data collected by other devices might come in a different structure); see data structure for more details
 -   Written for data spanning across multiple years (2020-2025 in this case)
 -   Any input for testing or output is anonymised, given it is a sensitive and personal data
 -   Exported from Fitbit account (not Google account) - [see more details](https://accounts.fitbit.com/login)
 -   See Google support article on how to export your own data - [see more details](https://support.google.com/fitbit/answer/14236615?hl=en#zippy=%2Chow-do-i-export-my-fitbit-data)
 -   This is a learning project. The author is not a programmer and only has foundational knowledge of other programming languages. There can be tools and techniques better suited for this projects - any constructive feedback is welcome.
 
-### Data Structure:
+### Data Structure: {#data-structure}
 
 -   Main challenge in phase 1 - import & data wrangling
 -   Consists of `folders` - `JSON` - `CSV` - `txt`
@@ -115,7 +119,7 @@ Check the detailed analysis below:
 
 ------------------------------------------------------------------------
 
-## Project structure
+## Project structure {#project-structure}
 
 ```         
 ├── 00_raw_data
@@ -134,7 +138,7 @@ Check the detailed analysis below:
 4.  `03_plots` this is where your plots will be stored if you enable the relevant setting.
 5.  `04_reports` contains EDA files which produce the relevant plots.
 
-## How to run the analysis
+## How to run the analysis {#how-to-run-the-analysis}
 
 ### 1. `dataset_inventory.R`
 
@@ -142,7 +146,7 @@ This will load the required libraries and create inventory object, which is requ
 
 In case of missing libraries feel free to use the following code to check and install missing components:
 
-```{r eval=FALSE}
+``` r
 libs <- c("fs", "tidyverse", "jsonlite", "here", "hms")
 
 installed_libs <- libs %in% rownames(installed.packages())
@@ -153,7 +157,7 @@ if (any(installed_libs == FALSE)) {
 
 ### 2. `sleep_inventory_parser.R`
 
-Build a sub-inventory focused on sleep and define functions which are used for merging relevant sleep json and csv files. 
+Build a sub-inventory focused on sleep and define functions which are used for merging relevant sleep json and csv files.
 
 ### 3. `04_reports/sleep_analysis.Rmd`
 
@@ -163,7 +167,7 @@ EDA of the sleep, trying to answer some of the questions based on initial data o
 
 ### 4. `activity_parser.R`
 
-Currently under construction - investigating a possibility of elevating some of the parser features to the main inventory object - `fitbit_inventory`. This would enrich it with additional info such as relevant categories, splitting dates into separate fields etc. Benefit: no need to have category-specific inventories - those can be derived from the main one. Main challenge here - the data (esp. file names) do not follow the same format across categories (sleep, activities, heart rate etc.).
+Currently under construction - investigating a possibility of elevating some of the parser features to the main inventory object - `fitbit_inventory`. This would enrich it with additional info such as relevant categories, splitting dates into separate fields etc. Benefit: no need to have category-specific inventories - those can be derived from the main one. Main challenge here - the data (esp. file names) do not follow the same format across categories (sleep, activities, heart rate etc.).
 
 ### Data compiler - 🚧 WORK IN PROGRESS 🚧
 
