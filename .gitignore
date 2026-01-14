@@ -2,5 +2,6 @@
 .Rhistory
 .RData
 .Ruserdata
-00_raw_data/
-01_tidy_data/
+.DS_Store
+00_raw_data/MyFitbitData/
+01_tidy_data/sleep_data.rds
