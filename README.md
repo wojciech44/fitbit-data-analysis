@@ -108,10 +108,8 @@ Check the detailed analysis below:
   details](https://accounts.fitbit.com/login)
 - See Google support article on how to export your own data - [see more
   details](https://support.google.com/fitbit/answer/14236615?hl=en#zippy=%2Chow-do-i-export-my-fitbit-data)
-- This is a learning project. The author is not a programmer and only
-  has foundational knowledge of other programming languages. There can
-  be tools and techniques better suited for this projects - any
-  constructive feedback is welcome.
+- This is a learning project. There can be tools and techniques better
+  suited for this projects - any constructive feedback is welcome.
 
 ### Data Structure:
 
