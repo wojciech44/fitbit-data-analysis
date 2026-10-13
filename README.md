@@ -10,7 +10,7 @@ data collected throughout the years using `Fitbit` wearables (now in
 
 ## Key findings (sleep, 2020-2025)
 
-- Sleep is ~29 min longer on weekends (7.9 h vs 7.4 h on average).
+- Sleep is ~33 min longer on weekends (8 h vs 7.4 h on average).
 - Export quality: 51 nights are duplicated (~3.8k rows) and summary vs
   details differ by ~40 min of time asleep on average.
 - Deep sleep episodes are longest when they start between 22:00 and
