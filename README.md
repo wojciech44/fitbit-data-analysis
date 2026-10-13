@@ -4,9 +4,26 @@ README
 
 # **R** you **fit** enough? Fitbit Data analysis with R.
 
-## 🚧 – WORK IN PROGRESS – 🚧
+The objective of this project is to discover patterns and insights from
+data collected throughout the years using `Fitbit` wearables (now in
+`Google Health`). The first key area for analysis is sleep.
 
-This project is currently under construction.
+## Key findings (sleep, 2020-2025)
+
+- Sleep is ~29 min longer on weekends (7.9 h vs 7.4 h on average).
+- Export quality: 51 nights are duplicated (~3.8k rows) and summary vs
+  details differ by ~40 min of time asleep on average.
+- Deep sleep episodes are longest when they start between 22:00 and
+  24:00 (27-32 min) and get ~2 min shorter with each hour after
+  midnight.
+- Late bedtimes fall mostly on weekends, so the “best bedtime” result is
+  confounded by the weekend effect.
+
+![](03_plots/sleep_weekend_vs_weekday.png)
+
+## Status
+
+Sleep analysis complete; activity and heart rate in progress.
 
 **Milestones**:
 
@@ -51,11 +68,11 @@ jumpstart your own analysis is entirely up to you.
 idea is to answer a few questions which came to mind and which may arise
 during the EDA:
 
+- Do I sleep better because of the exercises?
+- Do I have any `weird` sleep patterns which I am unaware of?
 - How does sleep affect my training performance over time?
 - Has my “fitness” improved, based on personal metrics like weight and
   perceived exhaustion?
-- Do I sleep better because of the exercises?
-- Do I have any `weird` sleep patterns which I am unaware of?
 - Which Fitbit features actually matter for long-term tracking and
   improvement?
 
