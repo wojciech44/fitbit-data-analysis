@@ -58,7 +58,8 @@ main_sleep <- main_sleep |>
   mutate(duration_hr = duration / 1000 / 3600,
          timeInBed_hr = timeInBed / 60, 
          .after = duration) |> 
-  select(logId:logType) |> 
+  select(logId:logType, mainSleep) |> 
+  filter(mainSleep) |> 
   distinct(logId, .keep_all = TRUE)
 ```
 
@@ -89,7 +90,31 @@ main_sleep |>
 
 Based on the initial look at the plot - LM suggest a marginal improvement in the overall trend, i.e. increasing length of sleep, and around mid-2023 we can observe more consistency and concentration of the sleep duration around the line.
 
+```{r include=FALSE}
+trend_model <- lm(duration_hr ~ as.numeric(dateOfSleep), data = main_sleep)
+summary(trend_model)
+coef(trend_model)[2] * 365 * 60
+confint(trend_model)[2, ] * 365 * 60
+```
+
+Sleep duration increased by ~3 min per year (95% CI: 1-5 min), i.e. ~15 min over the whole period. Date explains <1% of the variability
+between nights, so the trend is real but small.
+
 Starting from 2025 the duration seems to be spread further from the line, concentrating more on the upper and lower extremes.
+
+```{r}
+main_sleep |>
+  mutate(year = year(dateOfSleep)) |>
+  summarize(n = n(),
+            avg_hr = mean(duration_hr),
+            se = sd(duration_hr) / sqrt(n),
+            ci_low = avg_hr - 1.96 * se,
+            ci_high = avg_hr + 1.96 * se,
+            .by = year) |>
+  arrange(year)
+```
+Yearly averages show a dip in 2022 (7.3 h, 95% CI: 7.2-7.4) followed by recovery in 2023-2024, so the overall upward trend is driven largely
+by this dip.
 
 ------------------------------------------------------------------------
 
@@ -210,7 +235,7 @@ Analyzing the summary statistics, we can note few observations:
 -   **2020 is the only year** with a similar spread in length of sleep on both weekdays & weekends
 -   Outliers on weekdays **are present on both ends of the boxplot** - they correspond to sleep of under 6 hrs and over 9 hrs
 -   Outliers on weekends are **almost exclusively** present on the lower end of the sleep's length - ranging from 1hr to under 6 hrs, suggesting "sleepless nights"
--   50% of the registered sleep tends to last between **6-7 hrs on weekends** and **7.5-9 hrs on weekends**
+-   50% of the registered sleep tends to last between **6-7 hrs on weekdays** and **7.5-9 hrs on weekends**
 -   2025 shows **many higher-end outliers on weekdays**, where sleep lasted roughly 9 hrs - suggesting those could be Wednesdays (days off from the training). Additionally, there is more significant gap between the weekdays vs weekends, compared to previous years, as the boxes almost do not overlap. 
 
 
@@ -221,7 +246,13 @@ main_sleep |>
   mutate(diff_m = round_hms(hms(hours = (avg_duration_hr - lag(avg_duration_hr))), secs = 60))
 ```
 
-Throughout the years, on average sleep is longer by **\~29 mins** during weekends.
+Throughout the years, on average sleep is **\~33 mins** longer on weekends (95% CI: 26-40 min).
+Nights are not independent, so the interval is likely somewhat optimistic.
+
+```{r include=FALSE}
+t.test(duration_hr ~ weekday_type, data = main_sleep)
+```
+
 
 ------------------------------------------------------------------------
 
@@ -404,7 +435,7 @@ main_sleep |>
 main_sleep |> 
   select(logId:startTime) |> 
   mutate(startTime_hr = hour(startTime), .after = startTime) |> 
-  filter(startTime_hr %in% c(1,2)) |> 
+  filter(startTime_hr %in% c(0,1)) |> 
   group_by(day_of_the_week = weekday) |> 
   summarize(n_between_0_2 = n())
 ```
@@ -413,13 +444,9 @@ Cross check the analysis from previous point - are these two in line?
 
 Interestingly enough, from the first look this analysis does not seem to confirm the previous findings, meaning **the longest average deep sleep duration** was noted whenever **time of falling asleep was between midnight and 2:00 am**. Upon checking the count of observation, this is not a statistical error (the sample wasn't too small) and potentially can be caused by the higher **sleep pressure** and exhaustion when falling asleep late in the night. 
 
-However, majority of the nights when sleep started between midnight and 2 am occurred during the weekend (consider above table - day 6 is Friday & day 7 is Saturday in this scenario), which should also correlate with the longer sleep that was observed during the weekends.
+However, more than half of the nights when sleep started between midnight and 2 am occurred during the weekend (consider above table - day 6 is Saturday & day 7 is Sunday in this scenario, as sleep started after midnight, i.e. after going to bed on Friday and Saturday night), which should also correlate with the longer sleep that was observed during the weekends.
 
 **This doesn't contradict the previous analysis but adds another angle to this.**
-
-#### How does the sleep `score_score` compare to the `sleep_summary$efficiency`?
-
-Yet to be seen.. 
 
 ------------------------------------------------------------------------
 
